@@ -1,0 +1,178 @@
+{
+ "slug": "agent-rules",
+ "module": "agent-rules/src/privacy",
+ "function": "mergeClaudeSettings",
+ "cases": [
+  {
+   "name": "creates-settings-when-missing",
+   "args": [
+    null,
+    {
+     "folders": [
+      "Private"
+     ],
+     "files": []
+    },
+    []
+   ],
+   "expected": {
+    "ok": true,
+    "text": "{\n  \"permissions\": {\n    \"deny\": [\n      \"Read(/Private/**)\",\n      \"Edit(/Private/**)\"\n    ]\n  }\n}\n",
+    "changed": true,
+    "rules": [
+     "Read(/Private/**)",
+     "Edit(/Private/**)"
+    ]
+   }
+  },
+  {
+   "name": "keeps-other-keys-and-rules",
+   "args": [
+    "{\n  \"model\": \"x\",\n  \"permissions\": {\n    \"allow\": [\"Bash(ls)\"],\n    \"deny\": [\"Read(./.env)\"]\n  }\n}\n",
+    {
+     "folders": [
+      "Private"
+     ],
+     "files": []
+    },
+    []
+   ],
+   "expected": {
+    "ok": true,
+    "text": "{\n  \"model\": \"x\",\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(ls)\"\n    ],\n    \"deny\": [\n      \"Read(./.env)\",\n      \"Read(/Private/**)\",\n      \"Edit(/Private/**)\"\n    ]\n  }\n}\n",
+    "changed": true,
+    "rules": [
+     "Read(/Private/**)",
+     "Edit(/Private/**)"
+    ]
+   }
+  },
+  {
+   "name": "idempotent-second-run",
+   "args": [
+    "{\n  \"permissions\": {\n    \"deny\": [\n      \"Read(/Private/**)\",\n      \"Edit(/Private/**)\"\n    ]\n  }\n}\n",
+    {
+     "folders": [
+      "Private"
+     ],
+     "files": []
+    },
+    [
+     "Read(/Private/**)",
+     "Edit(/Private/**)"
+    ]
+   ],
+   "expected": {
+    "ok": true,
+    "text": "{\n  \"permissions\": {\n    \"deny\": [\n      \"Read(/Private/**)\",\n      \"Edit(/Private/**)\"\n    ]\n  }\n}\n",
+    "changed": false,
+    "rules": [
+     "Read(/Private/**)",
+     "Edit(/Private/**)"
+    ]
+   }
+  },
+  {
+   "name": "refuses-comments",
+   "args": [
+    "{\n  // team rules\n  \"permissions\": {}\n}\n",
+    {
+     "folders": [
+      "Private"
+     ],
+     "files": []
+    },
+    []
+   ],
+   "expected": {
+    "ok": false,
+    "error": ".claude/settings.json is not valid JSON. Fix the file, then try again. The plugin did not change it."
+   }
+  },
+  {
+   "name": "refuses-deny-not-a-list",
+   "args": [
+    "{\"permissions\":{\"deny\":\"Read(x)\"}}",
+    {
+     "folders": [
+      "Private"
+     ],
+     "files": []
+    },
+    []
+   ],
+   "expected": {
+    "ok": false,
+    "error": "The permissions.deny value in .claude/settings.json is not a list of text rules. The plugin did not change it."
+   }
+  },
+  {
+   "name": "removes-only-own-old-rules",
+   "args": [
+    "{\"permissions\":{\"deny\":[\"Read(./.env)\",\"Read(/Old/**)\",\"Edit(/Old/**)\"]}}\n",
+    {
+     "folders": [],
+     "files": []
+    },
+    [
+     "Read(/Old/**)",
+     "Edit(/Old/**)"
+    ]
+   ],
+   "expected": {
+    "ok": true,
+    "text": "{\n  \"permissions\": {\n    \"deny\": [\n      \"Read(./.env)\"\n    ]\n  }\n}\n",
+    "changed": true,
+    "rules": []
+   }
+  },
+  {
+   "name": "escapes-glob-characters-and-tagged-notes",
+   "args": [
+    null,
+    {
+     "folders": [
+      "Work [old]"
+     ],
+     "files": [
+      "Notes/Secret note.md"
+     ]
+    },
+    []
+   ],
+   "expected": {
+    "ok": true,
+    "text": "{\n  \"permissions\": {\n    \"deny\": [\n      \"Read(/Work \\\\[old\\\\]/**)\",\n      \"Edit(/Work \\\\[old\\\\]/**)\",\n      \"Read(/Notes/Secret note.md)\",\n      \"Edit(/Notes/Secret note.md)\"\n    ]\n  }\n}\n",
+    "changed": true,
+    "rules": [
+     "Read(/Work \\[old\\]/**)",
+     "Edit(/Work \\[old\\]/**)",
+     "Read(/Notes/Secret note.md)",
+     "Edit(/Notes/Secret note.md)"
+    ]
+   }
+  },
+  {
+   "name": "keeps-tab-indent",
+   "args": [
+    "{\n\t\"env\": {}\n}",
+    {
+     "folders": [
+      "Private"
+     ],
+     "files": []
+    },
+    []
+   ],
+   "expected": {
+    "ok": true,
+    "text": "{\n\t\"env\": {},\n\t\"permissions\": {\n\t\t\"deny\": [\n\t\t\t\"Read(/Private/**)\",\n\t\t\t\"Edit(/Private/**)\"\n\t\t]\n\t}\n}\n",
+    "changed": true,
+    "rules": [
+     "Read(/Private/**)",
+     "Edit(/Private/**)"
+    ]
+   }
+  }
+ ]
+}

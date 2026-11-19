@@ -1,0 +1,82 @@
+[
+	{
+		"feature": "private-folders",
+		"caption": "Three folders are private. The plugin wrote their deny rules at once.",
+		"note": "Welcome.md",
+		"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); p.settings.privateFolders = []; await p.writePrivateRules(false); app.workspace.rightSplit.setSize(560); const v = await p.activateView(); v.selected = null; p.lastLint = null; v.render(); p.settings.privateFolders = ['Agent Rules/Clients', 'Agent Rules/Health', 'Agent Rules/Journal']; await p.saveSettings(); document.querySelectorAll('.notice-container .notice').forEach((n) => n.remove()); await p.writePrivateRules(true); await new Promise((r) => setTimeout(r, 400)); const s = JSON.parse(await app.vault.adapter.read('.claude/settings.json')); for (const f of ['Journal', 'Health', 'Clients']) for (const k of ['Read', 'Edit']) if (!s.permissions.deny.includes(k + '(/Agent Rules/' + f + '/**)')) throw new Error('missing deny rule ' + k + ' ' + f); const items = [...document.querySelectorAll('.agent-rules-list li span')].map((e) => e.textContent); if (items.length !== 3) throw new Error('view shows ' + items.join(', ')); return 'private folders PASS'; })()",
+		"wait": 900
+	},
+	{
+		"feature": "deny-rules",
+		"caption": "The written .claude/settings.json has a Read and an Edit deny rule for each private folder.",
+		"note": "Welcome.md",
+		"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); for (const f of ['Agent Rules/Clients', 'Agent Rules/Health', 'Agent Rules/Journal']) if (!p.settings.privateFolders.includes(f)) await p.addPrivateFolder(f); const s = JSON.parse(await app.vault.adapter.read('.claude/settings.json')); for (const f of ['Journal', 'Health', 'Clients']) for (const k of ['Read', 'Edit']) if (!s.permissions.deny.includes(k + '(/Agent Rules/' + f + '/**)')) throw new Error('missing deny rule ' + k + ' ' + f); let proto = Object.getPrototypeOf(app.setting); while (proto && !Object.prototype.hasOwnProperty.call(proto, 'setTitle')) proto = Object.getPrototypeOf(proto); const m = new proto.constructor(app); m.setTitle('.claude/settings.json'); m.contentEl.createEl('pre', { text: await app.vault.adapter.read('.claude/settings.json') }); m.open(); return 'deny rules PASS'; })()",
+		"after": "(async () => { for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); return 'ok'; })()"
+	},
+	{
+		"feature": "self-test",
+		"caption": "The Pro self-test reads the written file back and counts the private notes.",
+		"note": "Welcome.md",
+		"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); for (const f of ['Agent Rules/Clients', 'Agent Rules/Health', 'Agent Rules/Journal']) if (!p.settings.privateFolders.includes(f)) await p.addPrivateFolder(f); p.__qaIsPro = p.pro.isPro; p.pro.isPro = () => true; const lines = await p.runSelfTest(); if (!lines || !lines.some((l) => l.includes('.claude/settings.json covers every private path'))) throw new Error('self-test ' + JSON.stringify(lines)); return 'self-test PASS (QA entitlement)'; })()",
+		"after": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); p.pro.isPro = p.__qaIsPro; delete p.__qaIsPro; p.refreshViews(); return 'reset'; })()"
+	},
+	{
+		"feature": "copy-line",
+		"caption": "One line names the private folders for agents that read only plain instructions.",
+		"note": "Welcome.md",
+		"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); for (const f of ['Agent Rules/Clients', 'Agent Rules/Health', 'Agent Rules/Journal']) if (!p.settings.privateFolders.includes(f)) await p.addPrivateFolder(f); const orig = navigator.clipboard.writeText; navigator.clipboard.writeText = () => Promise.reject(new Error('qa')); try { await p.copySnippet(); } finally { navigator.clipboard.writeText = orig; } await new Promise((r) => setTimeout(r, 400)); const t = document.querySelector('.modal-container .modal')?.textContent ?? ''; if (!t.includes('Agent Rules/Journal')) throw new Error('no line modal ' + t); return 'copy line PASS'; })()",
+		"after": "(async () => { for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); return 'ok'; })()"
+	},
+	{
+		"feature": "rule-tree",
+		"caption": "The side view lists every rule file in a tree of only the folders that hold one.",
+		"note": "Welcome.md",
+		"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); p.settings.privateFolders = []; await p.writePrivateRules(false); app.workspace.rightSplit.setSize(560); const v = await p.activateView(); v.selected = null; p.lastLint = null; v.render(); await new Promise((r) => setTimeout(r, 400)); const view = app.workspace.getLeavesOfType('agent-rules-view')[0].view; const h = [...view.contentEl.querySelectorAll('h4')].find((e) => e.textContent.startsWith(\"Rule files\")); if (!h) throw new Error('no section Rule files'); view.contentEl.scrollTop = h.offsetTop - 12; if (!view.contentEl.querySelector('h4')?.parentElement) throw new Error('no view'); const n = view.contentEl.querySelectorAll('.agent-rules-file').length; if (n !== 5) throw new Error('tree shows ' + n + ' files'); return 'tree PASS'; })()"
+	},
+	{
+		"feature": "nearest-rules",
+		"caption": "For the Website folder the view lists the AGENTS.md chain from the root down and the nearest CLAUDE.md.",
+		"note": "Projects/Website/Status.md",
+		"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); p.settings.privateFolders = []; await p.writePrivateRules(false); app.workspace.rightSplit.setSize(560); const v = await p.activateView(); v.selected = null; p.lastLint = null; v.render(); const v2 = app.workspace.getLeavesOfType('agent-rules-view')[0].view; v2.selectFolder('Agent Rules/Projects/Website'); await new Promise((r) => setTimeout(r, 400)); const chains = [...v2.contentEl.querySelectorAll('.agent-rules-applied ol')].map((o) => o.textContent); if (!chains.some((c) => c.includes('Agent Rules/Projects/Website/AGENTS.md') && c.includes('Agent Rules/Projects/AGENTS.md'))) throw new Error('nearest rules missing ' + chains.join(' | ')); const view = app.workspace.getLeavesOfType('agent-rules-view')[0].view; const h = [...view.contentEl.querySelectorAll('h4')].find((e) => e.textContent.startsWith(\"Rules for\")); if (!h) throw new Error('no section Rules for'); view.contentEl.scrollTop = h.offsetTop - 12; return 'nearest rules PASS'; })()"
+	},
+	{
+		"feature": "claude-import",
+		"caption": "One button writes a CLAUDE.md with the import line next to an AGENTS.md.",
+		"note": "Welcome.md",
+		"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); p.settings.privateFolders = []; await p.writePrivateRules(false); app.workspace.rightSplit.setSize(560); const v = await p.activateView(); v.selected = null; p.lastLint = null; v.render(); const r = await p.writeImportFile('Agent Rules/Projects', 'CLAUDE.md'); if (r !== 'created') throw new Error('import ' + r); await p.openPath('Agent Rules/Projects/CLAUDE.md'); await new Promise((r) => setTimeout(r, 400)); const t = await app.vault.adapter.read('Agent Rules/Projects/CLAUDE.md'); if (!t.includes('@AGENTS.md')) throw new Error('import text ' + t); const view = app.workspace.getLeavesOfType('agent-rules-view')[0].view; const h = [...view.contentEl.querySelectorAll('h4')].find((e) => e.textContent.startsWith(\"Rule files\")); if (!h) throw new Error('no section Rule files'); view.contentEl.scrollTop = h.offsetTop - 12; return 'import PASS'; })()",
+		"wait": 900,
+		"after": "(async () => { const f = app.vault.getAbstractFileByPath('Agent Rules/Projects/CLAUDE.md'); if (f) await app.vault.delete(f); return 'ok'; })()"
+	},
+	{
+		"feature": "agent-rules",
+		"caption": "Pick a private folder, see the deny rules written, then select a folder to see its rule files.",
+		"frames": [
+			{
+				"note": "Welcome.md",
+				"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); p.settings.privateFolders = []; await p.writePrivateRules(false); app.workspace.rightSplit.setSize(560); const v = await p.activateView(); v.selected = null; p.lastLint = null; v.render(); return 'empty'; })()",
+				"hold": 1600,
+				"wait": 700
+			},
+			{
+				"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; p.pickPrivateFolder(); await new Promise((r) => setTimeout(r, 400)); const i = document.querySelector('.prompt-input'); if (!i) throw new Error('no folder picker'); i.value = 'Journal'; i.dispatchEvent(new Event('input')); return 'picker'; })()",
+				"hold": 1800,
+				"wait": 900
+			},
+			{
+				"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); await p.addPrivateFolder('Agent Rules/Journal'); return 'added'; })()",
+				"hold": 2200,
+				"wait": 900
+			},
+			{
+				"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); let proto = Object.getPrototypeOf(app.setting); while (proto && !Object.prototype.hasOwnProperty.call(proto, 'setTitle')) proto = Object.getPrototypeOf(proto); const m = new proto.constructor(app); m.setTitle('.claude/settings.json'); m.contentEl.createEl('pre', { text: await app.vault.adapter.read('.claude/settings.json') }); m.open(); return 'file'; })()",
+				"hold": 2400,
+				"wait": 700
+			},
+			{
+				"eval": "(async () => { const p = app.plugins.plugins['agent-rules']; for (let i = 0; i < 8 && document.querySelector('.modal-container'); i++) { document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true })); await new Promise((r) => setTimeout(r, 150)); } if (document.querySelector('.modal-container')) throw new Error('a modal stays open'); document.querySelectorAll('.notice-container .notice').forEach((n) => n.remove()); const v2 = app.workspace.getLeavesOfType('agent-rules-view')[0].view; v2.selectFolder('Agent Rules/Projects/Website'); await new Promise((r) => setTimeout(r, 400)); const chains = [...v2.contentEl.querySelectorAll('.agent-rules-applied ol')].map((o) => o.textContent); if (!chains.some((c) => c.includes('Agent Rules/Projects/Website/AGENTS.md') && c.includes('Agent Rules/Projects/AGENTS.md'))) throw new Error('nearest rules missing ' + chains.join(' | ')); const view = app.workspace.getLeavesOfType('agent-rules-view')[0].view; const h = [...view.contentEl.querySelectorAll('h4')].find((e) => e.textContent.startsWith(\"Rules for\")); if (!h) throw new Error('no section Rules for'); view.contentEl.scrollTop = h.offsetTop - 12; return 'tree'; })()",
+				"hold": 2600,
+				"wait": 700
+			}
+		]
+	}
+]
