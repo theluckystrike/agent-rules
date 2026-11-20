@@ -1,6 +1,6 @@
 {
 	"name": "agent-rules",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"private": true,
 	"description": "See every AGENTS.md, CLAUDE.md and GEMINI.md in your vault as a tree, and keep agents out of private folders.",
 	"main": "main.js",

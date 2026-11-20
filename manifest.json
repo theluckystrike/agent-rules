@@ -1,7 +1,7 @@
 {
 	"id": "agent-rules",
 	"name": "Agent Rules",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.13.4",
 	"description": "See every AGENTS.md, CLAUDE.md and GEMINI.md in your vault as a tree, and keep agents out of private folders.",
 	"author": "Michael Lip",

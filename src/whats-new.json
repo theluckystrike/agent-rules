@@ -1,11 +1,11 @@
 {
 	"id": "agent-rules",
 	"name": "Agent Rules",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"changes": [
+		"New Send feedback command. It opens a page where you can report a problem or suggest an idea.",
 		"Agent Rules writes Claude Code deny rules for the private folders that you pick.",
-		"The side view shows every AGENTS.md, CLAUDE.md and GEMINI.md in your vault as a folder tree.",
-		"Pick a folder to see the rule files that an agent loads there."
+		"The side view shows every AGENTS.md, CLAUDE.md and GEMINI.md in your vault as a folder tree."
 	],
 	"tip": "Right-click a folder in the file explorer to make it private for agents or to add a rule file there.",
 	"thanks": "Hi, I am Michael, a solo developer in Poland. Agent Rules is one of over 100 small plugins that I make. Thank you for trying it with your coding agents.",

@@ -96,6 +96,8 @@ Each action also has a command in the command palette. The plugin sets no hotkey
 
 The settings tab starts with the private folder list. "Write the rules now" writes the rules again after a hand edit. The Pro group holds private tags, the Cursor and Gemini ignore files, the template choice and the self-test.
 
+After a minor or major update, this plugin opens one What's new tab in the background. The tab and settings card suggest other NoteMods plugins and Zovo Chat and link to notemods.com for feedback ([privacy](https://notemods.com/privacy/)). The tab sends no data. Turn the tab off in Settings.
+
 ## FAQ
 
 Does a private folder stop every program?
